@@ -33,5 +33,6 @@ app.use("/api/user", userRouter);
 // 🚀 Start Server
 app.listen(port, async () => {
   await connectDb();
-  console.log(`✅ Server started on http://localhost:${port}`);
+  console.log(`✅ Server is live and connected on PORT: ${port}`);
 });
+
