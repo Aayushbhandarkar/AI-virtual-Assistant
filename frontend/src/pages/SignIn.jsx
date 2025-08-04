@@ -18,14 +18,21 @@ function SignIn() {
     setErr("");
     setLoading(true);
     try {
-      let result = await axios.post(`${serverUrl}/api/auth/signin`, {
-        email, password
-      }, { withCredentials: true });
+      const result = await axios.post(`${serverUrl}/api/auth/signin`, {
+        email,
+        password
+      });
+
+      // ✅ Store token in localStorage for auth
+      localStorage.setItem("token", result.data.token);
+
+      // ✅ Set user data in context
       setUserData(result.data);
+
       setLoading(false);
       navigate("/");
     } catch (error) {
-      console.log(error);
+      console.log("❌ Signin error:", error);
       setUserData(null);
       setLoading(false);
       setErr(error.response?.data?.message || "Sign In failed");
@@ -81,7 +88,7 @@ function SignIn() {
         {/* Error */}
         {err && <p className="text-red-400 text-sm -mt-2">* {err}</p>}
 
-        {/* Final Dark Button */}
+        {/* Final Button */}
         <button
           type="submit"
           disabled={loading}
