@@ -24,16 +24,20 @@ function Customize2() {
       formData.append("userId", userData._id);
       formData.append("assistantName", assistantName);
 
-      // ✅ Check if backendImage is a valid File and append accordingly
+      // ✅ Append image if available
       if (backendImage && backendImage instanceof File) {
         formData.append("assistantImage", backendImage);
       } else if (selectedImage) {
         formData.append("imageUrl", selectedImage);
       }
 
+      // ✅ Get token from localStorage
+      const token = localStorage.getItem("token");
+
+      // ✅ Send request with Authorization header
       const result = await axios.post(`${serverUrl}/api/user/update`, formData, {
-        withCredentials: true,
         headers: {
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
       });
