@@ -21,20 +21,16 @@ function Customize2() {
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append("userId", userData._id);
       formData.append("assistantName", assistantName);
 
-      // ✅ Append image if available
       if (backendImage && backendImage instanceof File) {
         formData.append("assistantImage", backendImage);
       } else if (selectedImage) {
         formData.append("imageUrl", selectedImage);
       }
 
-      // ✅ Get token from localStorage
       const token = localStorage.getItem("token");
 
-      // ✅ Send request with Authorization header
       const result = await axios.post(`${serverUrl}/api/user/update`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -53,7 +49,6 @@ function Customize2() {
 
   return (
     <div className="w-full h-screen relative flex justify-center items-center flex-col p-5 overflow-hidden bg-black font-sans">
-
       {/* Background Effects */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-br from-[#02010a] via-[#0b0b1d] to-[#0f1129] opacity-95"></div>
