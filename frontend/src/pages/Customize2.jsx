@@ -21,19 +21,20 @@ function Customize2() {
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.append("userId", userData._id); // ✅ required
+      formData.append("userId", userData._id);
       formData.append("assistantName", assistantName);
 
-      if (backendImage) {
-        formData.append("assistantImage", backendImage); // ✅ file
-      } else {
-        formData.append("imageUrl", selectedImage);      // ✅ url string
+      // ✅ Check if backendImage is a valid File and append accordingly
+      if (backendImage && backendImage instanceof File) {
+        formData.append("assistantImage", backendImage);
+      } else if (selectedImage) {
+        formData.append("imageUrl", selectedImage);
       }
 
       const result = await axios.post(`${serverUrl}/api/user/update`, formData, {
         withCredentials: true,
         headers: {
-          'Content-Type': 'multipart/form-data' // ✅ Important!
+          'Content-Type': 'multipart/form-data'
         }
       });
 
@@ -42,13 +43,13 @@ function Customize2() {
       navigate("/");
     } catch (error) {
       setLoading(false);
-      console.log("❌ Error updating assistant:", error);
+      console.log("❌ Error updating assistant:", error?.response?.data || error.message);
     }
   };
 
   return (
     <div className="w-full h-screen relative flex justify-center items-center flex-col p-5 overflow-hidden bg-black font-sans">
-      
+
       {/* Background Effects */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-gradient-to-br from-[#02010a] via-[#0b0b1d] to-[#0f1129] opacity-95"></div>
