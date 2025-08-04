@@ -21,6 +21,7 @@ function Customize2() {
     setLoading(true);
     try {
       const formData = new FormData();
+      formData.append("userId", userData._id); // ✅ REQUIRED FIELD ADDED
       formData.append("assistantName", assistantName);
       if (backendImage) {
         formData.append("assistantImage", backendImage);
