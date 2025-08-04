@@ -21,20 +21,28 @@ function Customize2() {
     setLoading(true);
     try {
       const formData = new FormData();
+      formData.append("userId", userData._id); // ✅ required
       formData.append("assistantName", assistantName);
+
       if (backendImage) {
-        formData.append("assistantImage", backendImage);
+        formData.append("assistantImage", backendImage); // ✅ file
       } else {
-        formData.append("imageUrl", selectedImage);
+        formData.append("imageUrl", selectedImage);      // ✅ url string
       }
 
-      const result = await axios.post(`${serverUrl}/api/user/update`, formData, { withCredentials: true });
-      setLoading(false);
+      const result = await axios.post(`${serverUrl}/api/user/update`, formData, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'multipart/form-data' // ✅ Important!
+        }
+      });
+
       setUserData(result.data);
+      setLoading(false);
       navigate("/");
     } catch (error) {
       setLoading(false);
-      console.log(error);
+      console.log("❌ Error updating assistant:", error);
     }
   };
 
@@ -70,7 +78,7 @@ function Customize2() {
         value={assistantName}
       />
 
-      {/* Button */}
+      {/* Submit Button */}
       {assistantName && (
         <button
           className="z-10 min-w-[300px] h-[55px] mt-10 px-8 text-[#00ffd5] font-bold bg-[#111827] hover:bg-[#1e293b] rounded-full text-lg transition-all duration-300 shadow-md shadow-[#00ffd522] hover:shadow-lg hover:shadow-[#00ffd5aa]"
