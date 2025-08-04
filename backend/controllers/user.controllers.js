@@ -19,27 +19,21 @@ export const getCurrentUser = async (req, res) => {
 
 export const updateAssistant = async (req, res) => {
   try {
-    const { userId, assistantName, imageUrl } = req.body;
+    const { assistantName, imageUrl } = req.body;
     let assistantImage;
 
-    // Validation
-    if (!userId || !assistantName) {
-      return res.status(400).json({ message: "Missing required fields" });
+    if (!assistantName) {
+      return res.status(400).json({ message: "Missing assistant name" });
     }
-
-    // Debug log
-    console.log("🧪 updateAssistant Payload:", { userId, assistantName, imageUrl });
 
     if (req.file) {
       assistantImage = await uploadOnCloudinary(req.file.path);
-      console.log("🖼️ Uploaded image from file");
     } else {
       assistantImage = imageUrl;
-      console.log("🌐 Using selected image URL");
     }
 
     const user = await User.findByIdAndUpdate(
-      userId,
+      req.userId,
       { assistantName, assistantImage },
       { new: true }
     ).select("-password");
@@ -62,10 +56,7 @@ export const askToAssistant = async (req, res) => {
     user.history.push(command);
     await user.save();
 
-    const userName = user.name;
-    const assistantName = user.assistantName;
-    const result = await geminiResponse(command, assistantName, userName);
-
+    const result = await geminiResponse(command, user.assistantName, user.name);
     const jsonMatch = result.match(/{[\s\S]*}/);
     if (!jsonMatch) {
       return res.status(400).json({ response: "Sorry, I can't understand" });
@@ -76,32 +67,16 @@ export const askToAssistant = async (req, res) => {
 
     switch (type) {
       case "get-date":
-        return res.json({
-          type,
-          userInput: gemResult.userInput,
-          response: `Current date is ${moment().format("YYYY-MM-DD")}`,
-        });
+        return res.json({ type, userInput: gemResult.userInput, response: `Current date is ${moment().format("YYYY-MM-DD")}` });
 
       case "get-time":
-        return res.json({
-          type,
-          userInput: gemResult.userInput,
-          response: `Current time is ${moment().format("hh:mm A")}`,
-        });
+        return res.json({ type, userInput: gemResult.userInput, response: `Current time is ${moment().format("hh:mm A")}` });
 
       case "get-day":
-        return res.json({
-          type,
-          userInput: gemResult.userInput,
-          response: `Today is ${moment().format("dddd")}`,
-        });
+        return res.json({ type, userInput: gemResult.userInput, response: `Today is ${moment().format("dddd")}` });
 
       case "get-month":
-        return res.json({
-          type,
-          userInput: gemResult.userInput,
-          response: `Current month is ${moment().format("MMMM")}`,
-        });
+        return res.json({ type, userInput: gemResult.userInput, response: `Current month is ${moment().format("MMMM")}` });
 
       case "google-search":
       case "youtube-search":
@@ -111,11 +86,7 @@ export const askToAssistant = async (req, res) => {
       case "instagram-open":
       case "facebook-open":
       case "weather-show":
-        return res.json({
-          type,
-          userInput: gemResult.userInput,
-          response: gemResult.response,
-        });
+        return res.json({ type, userInput: gemResult.userInput, response: gemResult.response });
 
       default:
         return res.status(400).json({ response: "I didn't understand that command." });
