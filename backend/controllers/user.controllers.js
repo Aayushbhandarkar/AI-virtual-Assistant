@@ -8,11 +8,11 @@ export const getCurrentUser = async (req, res) => {
     const userId = req.userId;
     const user = await User.findById(userId).select("-password");
     if (!user) {
-      return res.status(400).json({ message: "user not found" });
+      return res.status(400).json({ message: "User not found" });
     }
-
     return res.status(200).json(user);
   } catch (error) {
+    console.log("❌ getCurrentUser error:", error);
     return res.status(400).json({ message: "get current user error" });
   }
 };
@@ -22,14 +22,20 @@ export const updateAssistant = async (req, res) => {
     const { userId, assistantName, imageUrl } = req.body;
     let assistantImage;
 
+    // Validation
     if (!userId || !assistantName) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
+    // Debug log
+    console.log("🧪 updateAssistant Payload:", { userId, assistantName, imageUrl });
+
     if (req.file) {
       assistantImage = await uploadOnCloudinary(req.file.path);
+      console.log("🖼️ Uploaded image from file");
     } else {
       assistantImage = imageUrl;
+      console.log("🌐 Using selected image URL");
     }
 
     const user = await User.findByIdAndUpdate(
@@ -38,9 +44,13 @@ export const updateAssistant = async (req, res) => {
       { new: true }
     ).select("-password");
 
+    if (!user) {
+      return res.status(400).json({ message: "User not found while updating" });
+    }
+
     return res.status(200).json(user);
   } catch (error) {
-    console.log("❌ updateAssistantError:", error);
+    console.log("❌ updateAssistant error:", error);
     return res.status(400).json({ message: "updateAssistantError user error" });
   }
 };
@@ -50,7 +60,7 @@ export const askToAssistant = async (req, res) => {
     const { command } = req.body;
     const user = await User.findById(req.userId);
     user.history.push(command);
-    user.save();
+    await user.save();
 
     const userName = user.name;
     const assistantName = user.assistantName;
@@ -58,7 +68,7 @@ export const askToAssistant = async (req, res) => {
 
     const jsonMatch = result.match(/{[\s\S]*}/);
     if (!jsonMatch) {
-      return res.status(400).json({ response: "sorry, I can't understand" });
+      return res.status(400).json({ response: "Sorry, I can't understand" });
     }
 
     const gemResult = JSON.parse(jsonMatch[0]);
@@ -69,28 +79,28 @@ export const askToAssistant = async (req, res) => {
         return res.json({
           type,
           userInput: gemResult.userInput,
-          response: `current date is ${moment().format("YYYY-MM-DD")}`,
+          response: `Current date is ${moment().format("YYYY-MM-DD")}`,
         });
 
       case "get-time":
         return res.json({
           type,
           userInput: gemResult.userInput,
-          response: `current time is ${moment().format("hh:mm A")}`,
+          response: `Current time is ${moment().format("hh:mm A")}`,
         });
 
       case "get-day":
         return res.json({
           type,
           userInput: gemResult.userInput,
-          response: `today is ${moment().format("dddd")}`,
+          response: `Today is ${moment().format("dddd")}`,
         });
 
       case "get-month":
         return res.json({
           type,
           userInput: gemResult.userInput,
-          response: `today is ${moment().format("MMMM")}`,
+          response: `Current month is ${moment().format("MMMM")}`,
         });
 
       case "google-search":
@@ -108,9 +118,7 @@ export const askToAssistant = async (req, res) => {
         });
 
       default:
-        return res
-          .status(400)
-          .json({ response: "I didn't understand that command." });
+        return res.status(400).json({ response: "I didn't understand that command." });
     }
   } catch (error) {
     console.log("❌ askToAssistant error:", error);
