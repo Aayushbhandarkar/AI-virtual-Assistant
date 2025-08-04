@@ -14,21 +14,29 @@ function SignUp() {
   const [loading, setLoading] = useState(false);
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
-  const [darkMode, setDarkMode] = useState(true); // Light/Dark toggle
+  const [darkMode, setDarkMode] = useState(true);
 
   const handleSignUp = async (e) => {
     e.preventDefault();
     setErr("");
     setLoading(true);
     try {
-      let result = await axios.post(`${serverUrl}/api/auth/signup`, {
-        name, email, password
-      }, { withCredentials: true });
+      const result = await axios.post(`${serverUrl}/api/auth/signup`, {
+        name,
+        email,
+        password
+      });
+
+      // ✅ Save token to localStorage
+      localStorage.setItem("token", result.data.token);
+
+      // ✅ Set user data globally
       setUserData(result.data);
       setLoading(false);
+
       navigate("/customize");
     } catch (error) {
-      console.log(error);
+      console.log("❌ Signup error:", error);
       setUserData(null);
       setLoading(false);
       setErr(error.response?.data?.message || "Signup failed");
@@ -44,7 +52,6 @@ function SignUp() {
           : "linear-gradient(135deg, #f0f4ff, #ffffff)"
       }}
     >
-      
       <div className="absolute top-5 right-5 text-white z-20">
         {darkMode ? (
           <BsSun className="w-6 h-6 cursor-pointer text-yellow-300" onClick={() => setDarkMode(false)} />
@@ -53,7 +60,6 @@ function SignUp() {
         )}
       </div>
 
-      
       {darkMode && (
         <>
           <div className="absolute w-72 h-72 bg-white/10 rounded-full top-16 left-10 blur-[120px] animate-pulse"></div>
@@ -61,7 +67,6 @@ function SignUp() {
         </>
       )}
 
-      {/* Sign Up Form */}
       <form
         onSubmit={handleSignUp}
         className={`relative z-10 w-[90%] max-w-md ${
@@ -70,14 +75,11 @@ function SignUp() {
             : "bg-white border-gray-200 text-black"
         } backdrop-blur-lg rounded-2xl shadow-xl p-10 border flex flex-col gap-6 transition-all duration-500`}
       >
-        <h2 className="text-center text-3xl font-semibold tracking-wide">
-          SIGNUP
-        </h2>
+        <h2 className="text-center text-3xl font-semibold tracking-wide">SIGNUP</h2>
         <p className={`text-center text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
           Hello, There!
         </p>
 
-        {/* Name */}
         <input
           type="text"
           placeholder="Full Name"
@@ -91,7 +93,6 @@ function SignUp() {
           onChange={(e) => setName(e.target.value)}
         />
 
-        {/* Email */}
         <input
           type="email"
           placeholder="email@domain.com"
@@ -105,7 +106,6 @@ function SignUp() {
           onChange={(e) => setEmail(e.target.value)}
         />
 
-        {/* Password */}
         <div className="relative w-full">
           <input
             type={showPassword ? "text" : "password"}
@@ -136,10 +136,8 @@ function SignUp() {
           )}
         </div>
 
-        {/* Error */}
         {err && <p className="text-red-500 text-sm -mt-2">* {err}</p>}
 
-        {/* Button */}
         <button
           type="submit"
           disabled={loading}
