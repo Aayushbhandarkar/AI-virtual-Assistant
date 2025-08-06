@@ -1,8 +1,8 @@
 import React, { useContext, useState } from 'react';
+import bg from "../assets/authBg.png"; // You can replace this with the uploaded gradient image
 import { IoEye, IoEyeOff } from "react-icons/io5";
 import { useNavigate } from 'react-router-dom';
 import { userDataContext } from '../context/UserContext';
-import { BsSun, BsMoon } from "react-icons/bs";
 import axios from "axios";
 
 function SignUp() {
@@ -14,7 +14,7 @@ function SignUp() {
   const [loading, setLoading] = useState(false);
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
-  const [darkMode, setDarkMode] = useState(true); // Light/Dark toggle
+  const [darkMode, setDarkMode] = useState(true);
 
   const handleSignUp = async (e) => {
     e.preventDefault();
@@ -31,134 +31,123 @@ function SignUp() {
       console.log(error);
       setUserData(null);
       setLoading(false);
-      setErr(error.response?.data?.message || "Signup failed");
+      setErr(error.response.data.message);
     }
   };
 
   return (
     <div
-      className="w-full h-screen flex items-center justify-center relative overflow-hidden transition-all duration-500"
+      className={`w-full h-[100vh] bg-cover bg-no-repeat flex justify-center items-center relative transition-all duration-300`}
       style={{
-        background: darkMode
-          ? "linear-gradient(135deg, #080d1a, #0b1121)"
-          : "linear-gradient(135deg, #f0f4ff, #ffffff)"
+        backgroundImage: `url(${bg})`,
+        backgroundColor: darkMode ? '#000000' : '#f2f2f2',
+        backgroundBlendMode: 'overlay'
       }}
     >
-      
-      <div className="absolute top-5 right-5 text-white z-20">
-        {darkMode ? (
-          <BsSun className="w-6 h-6 cursor-pointer text-yellow-300" onClick={() => setDarkMode(false)} />
-        ) : (
-          <BsMoon className="w-6 h-6 cursor-pointer text-gray-800" onClick={() => setDarkMode(true)} />
-        )}
-      </div>
-
-      
-      {darkMode && (
-        <>
-          <div className="absolute w-72 h-72 bg-white/10 rounded-full top-16 left-10 blur-[120px] animate-pulse"></div>
-          <div className="absolute w-60 h-60 bg-white/10 rounded-full bottom-20 right-10 blur-[100px] animate-pulse"></div>
-        </>
-      )}
-
-      {/* Sign Up Form */}
-      <form
-        onSubmit={handleSignUp}
-        className={`relative z-10 w-[90%] max-w-md ${
-          darkMode
-            ? "bg-white/5 border-white/10 text-white"
-            : "bg-white border-gray-200 text-black"
-        } backdrop-blur-lg rounded-2xl shadow-xl p-10 border flex flex-col gap-6 transition-all duration-500`}
+      {/* Toggle Button */}
+      <button
+        onClick={() => setDarkMode(!darkMode)}
+        className="absolute top-5 right-5 text-white bg-[#0ff0ff2c] border border-white px-3 py-1 rounded-full text-sm font-semibold hover:bg-cyan-400 hover:text-black transition-all duration-300 z-10"
       >
-        <h2 className="text-center text-3xl font-semibold tracking-wide">
-          SIGNUP
-        </h2>
-        <p className={`text-center text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-          Hello, There!
-        </p>
+        {darkMode ? 'Light Mode ☀️' : 'Dark Mode 🌙'}
+      </button>
 
-        {/* Name */}
+      <form
+        className={`w-[90%] max-w-[500px] h-[620px] rounded-2xl p-6 flex flex-col items-center justify-center gap-[20px] shadow-xl shadow-black transition-all duration-300 ${
+          darkMode
+            ? 'bg-[#0f0f0fa8] backdrop-blur-xl text-white'
+            : 'bg-white text-black'
+        }`}
+        onSubmit={handleSignUp}
+      >
+        <h1 className='text-[30px] font-bold mb-[20px] drop-shadow-md'>
+          Your Smart <span className='text-cyan-400'> Assistant Awaits!</span>
+        </h1>
+
         <input
           type="text"
-          placeholder="Full Name"
-          className={`w-full h-12 rounded-md px-4 placeholder-gray-400 focus:outline-none transition duration-300 ${
+          placeholder='Enter your Name'
+          className={`w-full h-[55px] outline-none border px-[20px] rounded-full text-[16px] focus:ring-2 transition-all duration-200 ${
             darkMode
-              ? "bg-[#1b1f2a] text-white border border-white/20 focus:border-white"
-              : "bg-gray-100 text-black border border-gray-300 focus:border-gray-800"
+              ? 'bg-[#1a1a1a] border-cyan-400 text-white placeholder-gray-400 focus:ring-cyan-400'
+              : 'bg-gray-100 border-gray-400 text-black placeholder-gray-600 focus:ring-blue-400'
           }`}
           required
-          value={name}
           onChange={(e) => setName(e.target.value)}
+          value={name}
         />
 
-        {/* Email */}
         <input
           type="email"
-          placeholder="email@domain.com"
-          className={`w-full h-12 rounded-md px-4 placeholder-gray-400 focus:outline-none transition duration-300 ${
+          placeholder='Email'
+          className={`w-full h-[55px] outline-none border px-[20px] rounded-full text-[16px] focus:ring-2 transition-all duration-200 ${
             darkMode
-              ? "bg-[#1b1f2a] text-white border border-white/20 focus:border-white"
-              : "bg-gray-100 text-black border border-gray-300 focus:border-gray-800"
+              ? 'bg-[#1a1a1a] border-cyan-400 text-white placeholder-gray-400 focus:ring-cyan-400'
+              : 'bg-gray-100 border-gray-400 text-black placeholder-gray-600 focus:ring-blue-400'
           }`}
           required
-          value={email}
           onChange={(e) => setEmail(e.target.value)}
+          value={email}
         />
 
-        {/* Password */}
-        <div className="relative w-full">
+        <div
+          className={`w-full h-[55px] border rounded-full relative flex items-center px-[20px] transition-all duration-200 ${
+            darkMode
+              ? 'bg-[#1a1a1a] border-cyan-400 text-white'
+              : 'bg-gray-100 border-gray-400 text-black'
+          }`}
+        >
           <input
             type={showPassword ? "text" : "password"}
-            placeholder="Password@123"
-            className={`w-full h-12 rounded-md px-4 pr-10 placeholder-gray-400 focus:outline-none transition duration-300 ${
+            placeholder='Password'
+            className={`w-full h-full outline-none bg-transparent pr-[40px] ${
               darkMode
-                ? "bg-[#1b1f2a] text-white border border-white/20 focus:border-white"
-                : "bg-gray-100 text-black border border-gray-300 focus:border-gray-800"
+                ? 'text-white placeholder-gray-400'
+                : 'text-black placeholder-gray-600'
             }`}
             required
-            value={password}
             onChange={(e) => setPassword(e.target.value)}
+            value={password}
           />
-          {showPassword ? (
-            <IoEyeOff
-              className={`absolute top-3.5 right-3 cursor-pointer ${
-                darkMode ? "text-white" : "text-black"
+          {!showPassword ? (
+            <IoEye
+              className={`absolute right-[15px] cursor-pointer ${
+                darkMode ? 'text-white' : 'text-black'
               }`}
-              onClick={() => setShowPassword(false)}
+              size={22}
+              onClick={() => setShowPassword(true)}
             />
           ) : (
-            <IoEye
-              className={`absolute top-3.5 right-3 cursor-pointer ${
-                darkMode ? "text-white" : "text-black"
+            <IoEyeOff
+              className={`absolute right-[15px] cursor-pointer ${
+                darkMode ? 'text-white' : 'text-black'
               }`}
-              onClick={() => setShowPassword(true)}
+              size={22}
+              onClick={() => setShowPassword(false)}
             />
           )}
         </div>
 
-        {/* Error */}
-        {err && <p className="text-red-500 text-sm -mt-2">* {err}</p>}
+        {err.length > 0 && (
+          <p className='text-red-500 text-[16px] font-medium'>* {err}</p>
+        )}
 
-        {/* Button */}
         <button
-          type="submit"
-          disabled={loading}
-          className={`w-full h-11 mt-2 font-semibold rounded-md transition duration-300 ${
+          className={`w-[160px] h-[50px] mt-[20px] font-semibold rounded-full text-[17px] transition-all duration-200 ${
             darkMode
-              ? "bg-[#1f2937] hover:bg-[#374151] text-white"
-              : "bg-gray-800 hover:bg-black text-white"
+              ? 'bg-gradient-to-r from-cyan-300 to-blue-400 text-black hover:opacity-90'
+              : 'bg-blue-500 text-white hover:opacity-90'
           }`}
+          disabled={loading}
         >
-          {loading ? "Signing Up..." : "SIGNUP"}
+          {loading ? "Loading..." : "Sign Up"}
         </button>
 
-        <p className={`text-center text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+        <p className={`text-[16px] mt-[10px] ${darkMode ? 'text-white' : 'text-black'}`}>
           Already have an account?{" "}
           <span
+            className='text-cyan-400 hover:underline cursor-pointer'
             onClick={() => navigate("/signin")}
-            className={`font-medium hover:underline cursor-pointer ${
-              darkMode ? 'text-white' : 'text-black'
-            }`}
           >
             Sign In
           </span>

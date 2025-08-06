@@ -16,8 +16,7 @@ try {
     const hashedPassword=await bcrypt.hash(password,10)
 
     const user=await User.create({
-        name,password:
-hashedPassword,email
+        name,password:hashedPassword,email
     })
 
     const token=await genToken(user._id)
