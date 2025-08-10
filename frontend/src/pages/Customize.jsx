@@ -19,13 +19,6 @@ function Customize() {
   const navigate = useNavigate();
   const inputImage = useRef();
 
-  const handleImage = (e) => {
-    const file = e.target.files[0];
-    setBackendImage(file);
-    setFrontendImage(URL.createObjectURL(file));
-  };
-
-  // Particle effect
   const [particles, setParticles] = useState([]);
   useEffect(() => {
     const particleArray = [];
@@ -40,6 +33,12 @@ function Customize() {
     }
     setParticles(particleArray);
   }, []);
+
+  const handleImage = (e) => {
+    const file = e.target.files[0];
+    setBackendImage(file);
+    setFrontendImage(URL.createObjectURL(file));
+  };
 
   return (
     <div className="w-full h-[100vh] relative flex justify-center items-center flex-col p-[20px] overflow-hidden">
@@ -73,30 +72,30 @@ function Customize() {
         Select your <span className="text-highlight">Assistant Image</span>
       </h1>
 
-      {/* Cards */}
+      {/* Image Grid */}
       <div className="w-full max-w-[900px] flex justify-center items-center flex-wrap gap-[15px] animate-slideUp">
-        <div className="hover-card"><Card image={image1}/></div>
-        <div className="hover-card"><Card image={image2}/></div>
-        <div className="hover-card"><Card image={image3}/></div>
-        <div className="hover-card"><Card image={image4}/></div>
-        <div className="hover-card"><Card image={image5}/></div>
-        <div className="hover-card"><Card image={image6}/></div>
-        <div className="hover-card"><Card image={image7}/></div>
-        <div className="hover-card"><Card image={image8}/></div>
-        <div className="hover-card"><Card image={image9}/></div>
+        <Card image={image1}/>
+        <Card image={image2}/>
+        <Card image={image3}/>
+        <Card image={image4}/>
+        <Card image={image5}/>
+        <Card image={image6}/>
+        <Card image={image7}/>
+        <Card image={image8}/>
+        <Card image={image9}/>
         
-        {/* Upload Image Card */}
+        {/* Upload Option */}
         <div 
-          className={`hover-card w-[70px] h-[140px] lg:w-[150px] lg:h-[250px] bg-[#020220] border-2 border-[#0000ff66] rounded-2xl overflow-hidden cursor-pointer flex items-center justify-center transition-all duration-300 ${selectedImage=="input" ? "border-4 border-white shadow-2xl shadow-blue-950" : ""}`} 
+          className={`w-[70px] h-[140px] lg:w-[150px] lg:h-[250px] bg-[#020220] border-2 border-[#0000ff66] rounded-2xl overflow-hidden hover:shadow-2xl hover:shadow-blue-950 cursor-pointer hover:border-4 hover:border-white flex items-center justify-center transition-all duration-300 ${selectedImage=="input" ? "border-4 border-white shadow-2xl shadow-blue-950" : ""}`} 
           onClick={() => {
             inputImage.current.click();
             setSelectedImage("input");
           }}
         >
-          {!frontendImage && <RiImageAddLine className='text-white w-[25px] h-[25px]'/>}
-          {frontendImage && <img src={frontendImage} className='h-full object-cover' alt="Uploaded"/>}
+          {!frontendImage && <RiImageAddLine className="text-white w-[25px] h-[25px]"/>}
+          {frontendImage && <img src={frontendImage} className="h-full object-cover"/>}
         </div>
-        <input type="file" accept='image/*' ref={inputImage} hidden onChange={handleImage}/>
+        <input type="file" accept="image/*" ref={inputImage} hidden onChange={handleImage}/>
       </div>
 
       {/* Next Button */}
@@ -160,14 +159,6 @@ function Customize() {
         }
         .drop-shadow-lg {
           text-shadow: 0 0 10px rgba(255,255,255,0.6), 0 0 20px rgba(0, 195, 255, 0.5);
-        }
-        /* Hover effect for cards */
-        .hover-card {
-          transition: transform 0.4s ease, box-shadow 0.4s ease;
-        }
-        .hover-card:hover {
-          transform: scale(1.07);
-          box-shadow: 0 8px 20px rgba(0, 195, 255, 0.4);
         }
       `}</style>
     </div>
