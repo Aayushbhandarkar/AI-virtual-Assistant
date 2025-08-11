@@ -14,7 +14,7 @@ const app = express();
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://ai-virtual-assistant-1-epd8.onrender.com"
+    "https://ai-virtual-assistant-l6fy.onrender.com
   ],
   credentials: true
 }));
