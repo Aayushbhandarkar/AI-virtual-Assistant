@@ -7,13 +7,14 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import userRouter from "./routes/user.routes.js";
 import geminiResponse from "./gemini.js";
+import chatRouter from "./routes/chat.routes.js";
 
 const app = express();
 
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://ai-virtual-assistant-l6fy.onrender.com"
+    "https://ai-virtual-assistant-1-epd8.onrender.com"
   ],
   credentials: true
 }));
@@ -24,6 +25,8 @@ app.use(express.json());
 app.use(cookieParser());
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
+app.use("/api", chatRouter);
+
 
 app.listen(port, () => {
   connectDb();
