@@ -50,6 +50,25 @@ function Home() {
     }
   }
 
+  const stopRecognition = () => {
+    try {
+      recognitionRef.current?.stop()
+      console.log("Recognition requested to stop")
+    } catch (error) {
+      if (error.name !== "InvalidStateError") {
+        console.error("Stop error:", error)
+      }
+    }
+  }
+
+  const toggleListening = () => {
+    if (isRecognizingRef.current) {
+      stopRecognition()
+    } else {
+      startRecognition()
+    }
+  }
+
   const speak = (text) => {
     const utterence = new SpeechSynthesisUtterance(text)
     utterence.lang = 'hi-IN'
@@ -64,7 +83,9 @@ function Home() {
       setAiText("")
       isSpeakingRef.current = false
       setTimeout(() => {
-        startRecognition()
+        if (listening) {
+          startRecognition()
+        }
       }, 800)
     }
 
@@ -115,16 +136,7 @@ function Home() {
 
     let isMounted = true
 
-    const startTimeout = setTimeout(() => {
-      if (isMounted && !isSpeakingRef.current && !isRecognizingRef.current) {
-        try {
-          recognition.start()
-          console.log("Recognition requested to start")
-        } catch (e) {
-          if (e.name !== "InvalidStateError") console.error(e)
-        }
-      }
-    }, 1000)
+    // No auto start here
 
     recognition.onstart = () => {
       isRecognizingRef.current = true
@@ -134,7 +146,7 @@ function Home() {
     recognition.onend = () => {
       isRecognizingRef.current = false
       setListening(false)
-      if (isMounted && !isSpeakingRef.current) {
+      if (isMounted && !isSpeakingRef.current && listening) {
         setTimeout(() => {
           if (isMounted) {
             try {
@@ -152,7 +164,7 @@ function Home() {
       console.warn("Recognition error:", event.error)
       isRecognizingRef.current = false
       setListening(false)
-      if (event.error !== "aborted" && isMounted && !isSpeakingRef.current) {
+      if (event.error !== "aborted" && isMounted && !isSpeakingRef.current && listening) {
         setTimeout(() => {
           if (isMounted) {
             try {
@@ -168,17 +180,17 @@ function Home() {
 
     recognition.onresult = async (e) => {
       const transcript = e.results[e.results.length - 1][0].transcript.trim()
-      if (transcript.toLowerCase().includes(userData.assistantName.toLowerCase())) {
-        setAiText("")
-        setUserText(transcript)
-        recognition.stop()
-        isRecognizingRef.current = false
-        setListening(false)
-        const data = await getGeminiResponse(transcript)
-        handleCommand(data)
-        setAiText(data.response)
-        setUserText("")
-      }
+      // Removed assistant name check here, so it works on every input
+
+      setAiText("")
+      setUserText(transcript)
+      recognition.stop()
+      isRecognizingRef.current = false
+      setListening(false)
+      const data = await getGeminiResponse(transcript)
+      handleCommand(data)
+      setAiText(data.response)
+      setUserText("")
     }
 
     const greeting = new SpeechSynthesisUtterance(`Hello ${userData.name}, what can I help you with?`)
@@ -187,32 +199,11 @@ function Home() {
 
     return () => {
       isMounted = false
-      clearTimeout(startTimeout)
       recognition.stop()
       setListening(false)
       isRecognizingRef.current = false
     }
   }, [])
-
-  // Chat send function
-  const sendChatMessage = async () => {
-    if (!chatInput.trim()) return;
-    const newMessages = [...chatMessages, { text: chatInput, sender: "user" }]
-    setChatMessages(newMessages)
-    setChatInput("")
-
-    try {
-      const res = await fetch(`${serverUrl}/api/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: chatInput }),
-      })
-      const data = await res.json()
-      setChatMessages([...newMessages, { text: data.reply, sender: "bot" }])
-    } catch (err) {
-      console.error("Chat error:", err)
-    }
-  }
 
   return (
     <div className='w-full h-[100vh] bg-gradient-to-t from-[black] to-[#02023d] flex justify-center items-center flex-col gap-[15px] overflow-hidden relative'>
@@ -283,67 +274,15 @@ function Home() {
 
       <h1 className='text-white text-[18px] font-semibold text-wrap'>{userText ? userText : aiText ? aiText : null}</h1>
 
-      {/* Floating Chat Icon */}
-      <div className="fixed bottom-5 right-5 z-50">
-        <button
-          className="bg-blue-600 text-white p-4 rounded-full shadow-lg hover:scale-110 hover:shadow-blue-500/80 transition-transform duration-300 ease-in-out"
-          onClick={() => setChatOpen(!chatOpen)}
-          aria-label="Toggle Chat"
-          title="Chat with Assistant"
-        >
-          <FaComments size={26} />
-        </button>
-      </div>
-
-      {/* Chat Popup */}
-      {chatOpen && (
-        <div 
-          className="fixed bottom-20 right-5 w-80 bg-white shadow-2xl rounded-lg flex flex-col
-            animate-fadeInUp"
-          style={{ animationDuration: '0.4s', animationTimingFunction: 'ease-out' }}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Chat with AI assistant"
-        >
-          <div className="p-3 bg-blue-700 text-white font-semibold rounded-t-lg select-none">AI Chat</div>
-          <div className="flex-1 p-3 h-64 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-blue-400 scrollbar-track-gray-100">
-            {chatMessages.map((msg, idx) => (
-              <div
-                key={idx}
-                className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"} animate-messageFade`}
-                style={{ animationDuration: '0.3s', animationTimingFunction: 'ease-in-out' }}
-              >
-                <span
-                  className={`inline-block px-3 py-2 max-w-[70%] break-words rounded-lg
-                    ${msg.sender === "user" ? "bg-blue-600 text-white rounded-br-none" : "bg-gray-200 text-gray-900 rounded-bl-none"}`}
-                >
-                  {msg.text}
-                </span>
-              </div>
-            ))}
-          </div>
-          <form
-            className="flex p-2 border-t"
-            onSubmit={e => { e.preventDefault(); sendChatMessage() }}
-          >
-            <input
-              type="text"
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              className="flex-1 border border-gray-300 rounded-l-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Type a message..."
-              aria-label="Chat input"
-            />
-            <button
-              type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-5 rounded-r-lg transition-colors duration-300"
-              aria-label="Send chat message"
-            >
-              Send
-            </button>
-          </form>
-        </div>
-      )}
+      {/* Voice Start/Stop Toggle Button */}
+      <button
+        className={`min-w-[150px] h-[50px] text-white font-semibold rounded-full px-5 text-[18px] shadow-xl transition-all duration-300 ${
+          listening ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'
+        }`}
+        onClick={toggleListening}
+      >
+        {listening ? 'Stop Listening' : 'Start Listening'}
+      </button>
 
       <ProChatWidget />
 
