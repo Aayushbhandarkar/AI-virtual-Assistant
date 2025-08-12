@@ -92,7 +92,7 @@ function Customize2() {
       {/* Input Field */}
       <input
         type="text"
-        placeholder="eg. Shifra"
+        placeholder="eg. Lion"
         className="w-full max-w-[600px] h-[60px] outline-none border-2 border-white bg-transparent text-white placeholder-gray-300 px-[20px] py-[10px] rounded-full text-[18px] animate-slideUp"
         required
         onChange={(e) => setAssistantName(e.target.value)}
