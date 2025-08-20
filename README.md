@@ -1,6 +1,7 @@
-# Virtual AI Assistant — Fully Customized UI/UX & Enhanced Logic
+🤖 Virtual AI Assistant
 
-This project is a fully customized version of a Virtual AI Assistant where I have extensively redesigned the UI/UX to deliver a modern, intuitive, and seamless user experience. Beyond just improving the visuals, I have also integrated my own logic enhancements to make the assistant smarter and more responsive.
+This project is a Virtual AI Assistant that I built with a focus on modern UI/UX, intelligent response handling, and personalization features.
+Unlike a basic chatbot, this version combines voice interaction, AI-powered conversations, secure authentication, and customization options to make it feel like a real-world assistant.
 
 ---
 
@@ -32,6 +33,11 @@ React | Node.js | Express | MongoDB | Gemini AI | Web Speech API | JWT | bcryptj
 - Live Deployment: The entire application is live and accessible anytime via Render
 
 ---
+
+📸 Screenshots
+![WhatsApp Image 2025-08-15 at 08 47 00_b0a1eb89](https://github.com/user-attachments/assets/5ae3e8ce-3dd3-489a-acaa-5b99f4406697)
+![WhatsApp Image 2025-08-15 at 08 47 00_d863bb90](https://github.com/user-attachments/assets/09a7e4e5-8d3d-4834-be2e-686f984e2cbb)
+![WhatsApp Image 2025-08-15 at 08 47 12_e5e3c61a](https://github.com/user-attachments/assets/5e9726c0-91c5-4541-9cac-9c8eb289f2a7)
 
 ## Live Demo
 
