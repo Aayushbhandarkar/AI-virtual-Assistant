@@ -6,7 +6,7 @@ import aiImg from "../assets/ai.gif"
 import { CgMenuRight } from "react-icons/cg"
 import { RxCross1 } from "react-icons/rx"
 import userImg from "../assets/user.gif"
-import { FaComments } from "react-icons/fa" // Chat icon
+import { FaComments } from "react-icons/fa" 
 import ProChatWidget from "../components/ProChatWidget";
 
 function Home() {
