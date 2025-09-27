@@ -1,7 +1,4 @@
 import React, { useContext, useRef, useState, useEffect } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import Card from "../components/Card";
 import image1 from "../assets/robort1.png";
 import image2 from "../assets/robort 2.png";
@@ -17,9 +14,6 @@ import { RiImageAddLine } from "react-icons/ri";
 import { userDataContext } from "../context/UserContext";
 import { useNavigate } from "react-router-dom";
 import { MdKeyboardBackspace } from "react-icons/md";
-
-// Register GSAP plugins
-gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
 
 function Customize() {
   const {
@@ -57,13 +51,13 @@ function Customize() {
   // Enhanced particles with more properties for GSAP
   useEffect(() => {
     const particleArray = [];
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 25; i++) {
       particleArray.push({
         id: i,
         left: Math.random() * 100,
         top: Math.random() * 100,
         delay: Math.random() * 5,
-        size: Math.random() * 8 + 2,
+        size: Math.random() * 6 + 2,
         duration: Math.random() * 4 + 3,
         color: `hsl(${Math.random() * 60 + 200}, 100%, 70%)` // Blueish colors
       });
@@ -71,112 +65,114 @@ function Customize() {
     setParticles(particleArray);
   }, []);
 
-  // Main GSAP animations
+  // Main GSAP animations - using global GSAP
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || !window.gsap) return;
 
-    const ctx = gsap.context(() => {
-      // Initial page load animation
-      gsap.fromTo(containerRef.current, 
-        { opacity: 0, scale: 0.95 },
-        { opacity: 1, scale: 1, duration: 1.2, ease: "power3.out" }
-      );
+    const { gsap } = window;
 
-      // Title animation with floating effect
-      gsap.fromTo(titleRef.current,
-        { y: -100, opacity: 0, rotationX: 90 },
-        { 
-          y: 0, 
-          opacity: 1, 
-          rotationX: 0, 
-          duration: 1.5, 
-          ease: "back.out(1.7)",
-          delay: 0.3
-        }
-      );
+    // Initial page load animation
+    gsap.fromTo(containerRef.current, 
+      { opacity: 0, scale: 0.95 },
+      { opacity: 1, scale: 1, duration: 1.2, ease: "power3.out" }
+    );
 
-      // Continuous title floating animation
-      gsap.to(titleRef.current, {
-        y: "+=10",
-        duration: 3,
-        repeat: -1,
-        yoyo: true,
-        ease: "sine.inOut"
-      });
-
-      // Back button slide-in
-      gsap.fromTo(backButtonRef.current,
-        { x: -100, opacity: 0 },
-        { x: 0, opacity: 1, duration: 1, delay: 0.5, ease: "power3.out" }
-      );
-
-      // Grid items staggered animation with rolling effect
-      gsap.fromTo(cardRefs.current,
-        { 
-          opacity: 0, 
-          scale: 0, 
-          rotationY: 180,
-          y: 100
-        },
-        { 
-          opacity: 1, 
-          scale: 1, 
-          rotationY: 0,
-          y: 0,
-          duration: 1,
-          stagger: {
-            amount: 1.5,
-            from: "random"
-          },
-          ease: "back.out(1.5)",
-          delay: 0.8
-        }
-      );
-
-      // Upload card specific animation
-      gsap.fromTo(uploadCardRef.current,
-        { 
-          opacity: 0, 
-          scale: 0.5, 
-          rotation: 360 
-        },
-        { 
-          opacity: 1, 
-          scale: 1, 
-          rotation: 0, 
-          duration: 1.2, 
-          ease: "elastic.out(1, 0.5)",
-          delay: 1.5 
-        }
-      );
-
-      // Next button animation (when visible)
-      if (selectedImage && buttonRef.current) {
-        gsap.fromTo(buttonRef.current,
-          { scale: 0, opacity: 0 },
-          { scale: 1, opacity: 1, duration: 0.8, ease: "elastic.out(1, 0.8)" }
-        );
+    // Title animation with floating effect
+    gsap.fromTo(titleRef.current,
+      { y: -100, opacity: 0, rotationX: 90 },
+      { 
+        y: 0, 
+        opacity: 1, 
+        rotationX: 0, 
+        duration: 1.5, 
+        ease: "back.out(1.7)",
+        delay: 0.3
       }
+    );
 
-      // Enhanced particle animations
-      particlesRef.current.forEach((particle, i) => {
-        if (particle) {
-          gsap.to(particle, {
-            y: "+=random(-50, 50)",
-            x: "+=random(-30, 30)",
-            rotation: "+=random(0, 360)",
-            duration: `random(3, 6)`,
-            repeat: -1,
-            yoyo: true,
-            ease: "sine.inOut",
-            delay: `random(0, 2)`
-          });
-        }
-      });
+    // Continuous title floating animation
+    gsap.to(titleRef.current, {
+      y: "+=10",
+      duration: 3,
+      repeat: -1,
+      yoyo: true,
+      ease: "sine.inOut"
+    });
 
-    }, containerRef);
+    // Back button slide-in
+    gsap.fromTo(backButtonRef.current,
+      { x: -100, opacity: 0 },
+      { x: 0, opacity: 1, duration: 1, delay: 0.5, ease: "power3.out" }
+    );
 
-    return () => ctx.revert(); // Cleanup
+    // Grid items staggered animation with rolling effect
+    gsap.fromTo(cardRefs.current,
+      { 
+        opacity: 0, 
+        scale: 0, 
+        rotationY: 180,
+        y: 100
+      },
+      { 
+        opacity: 1, 
+        scale: 1, 
+        rotationY: 0,
+        y: 0,
+        duration: 1,
+        stagger: {
+          amount: 1.5,
+          from: "random"
+        },
+        ease: "back.out(1.5)",
+        delay: 0.8
+      }
+    );
+
+    // Upload card specific animation
+    gsap.fromTo(uploadCardRef.current,
+      { 
+        opacity: 0, 
+        scale: 0.5, 
+        rotation: 360 
+      },
+      { 
+        opacity: 1, 
+        scale: 1, 
+        rotation: 0, 
+        duration: 1.2, 
+        ease: "elastic.out(1, 0.5)",
+        delay: 1.5 
+      }
+    );
+
+    // Enhanced particle animations
+    particlesRef.current.forEach((particle, i) => {
+      if (particle) {
+        gsap.to(particle, {
+          y: `+=${Math.random() * 100 - 50}`,
+          x: `+=${Math.random() * 60 - 30}`,
+          rotation: `+=${Math.random() * 360}`,
+          duration: Math.random() * 3 + 3,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut",
+          delay: Math.random() * 2
+        });
+      }
+    });
+
+  }, []);
+
+  // Next button animation when selectedImage changes
+  useEffect(() => {
+    if (selectedImage && buttonRef.current && window.gsap) {
+      const { gsap } = window;
+      
+      gsap.fromTo(buttonRef.current,
+        { scale: 0, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.8, ease: "elastic.out(1, 0.8)" }
+      );
+    }
   }, [selectedImage]);
 
   const handleImage = (e) => {
@@ -185,7 +181,9 @@ function Customize() {
     setFrontendImage(URL.createObjectURL(file));
     
     // Animation when image is selected
-    if (uploadCardRef.current) {
+    if (uploadCardRef.current && window.gsap) {
+      const { gsap } = window;
+      
       gsap.fromTo(uploadCardRef.current,
         { scale: 0.8 },
         { scale: 1.1, duration: 0.3, yoyo: true, repeat: 1, ease: "power2.inOut" }
@@ -195,7 +193,9 @@ function Customize() {
 
   const handleCardClick = (index) => {
     // Animate the clicked card
-    if (cardRefs.current[index]) {
+    if (cardRefs.current[index] && window.gsap) {
+      const { gsap } = window;
+      
       gsap.fromTo(cardRefs.current[index],
         { scale: 1 },
         { scale: 0.9, duration: 0.1, yoyo: true, repeat: 1, ease: "power2.inOut" }
@@ -204,6 +204,13 @@ function Customize() {
   };
 
   const handleNextClick = () => {
+    if (!window.gsap) {
+      navigate("/customize2");
+      return;
+    }
+    
+    const { gsap } = window;
+    
     // Page transition animation
     gsap.to(containerRef.current, {
       opacity: 0,
@@ -215,6 +222,13 @@ function Customize() {
   };
 
   const handleBackClick = () => {
+    if (!window.gsap) {
+      navigate("/");
+      return;
+    }
+    
+    const { gsap } = window;
+    
     gsap.to(containerRef.current, {
       opacity: 0,
       x: -100,
@@ -277,6 +291,7 @@ function Customize() {
               setSelectedImage(`card-${index}`);
               handleCardClick(index);
             }}
+            className="cursor-pointer"
           >
             <Card image={image} />
           </div>
@@ -382,21 +397,6 @@ function Customize() {
         
         .drop-shadow-lg {
           text-shadow: 0 0 10px rgba(255,255,255,0.6), 0 0 20px rgba(0, 195, 255, 0.5);
-        }
-        
-        /* Custom scrollbar for better UX */
-        ::-webkit-scrollbar {
-          width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 10px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-          background: linear-gradient(45deg, #00c6ff, #0072ff);
-          border-radius: 10px;
         }
       `}</style>
     </div>
