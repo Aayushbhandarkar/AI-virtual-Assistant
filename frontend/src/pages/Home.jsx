@@ -9,8 +9,11 @@ import userImg from "../assets/user.gif"
 import { FaComments } from "react-icons/fa" 
 import ProChatWidget from "../components/ProChatWidget";
 
+// Import default images as fallback
+import defaultImage1 from "../assets/robort1.png";
+
 function Home() {
-  const { userData, serverUrl, setUserData, getGeminiResponse } = useContext(userDataContext)
+  const { userData, serverUrl, setUserData, getGeminiResponse, assistantImage, defaultImages } = useContext(userDataContext)
   const navigate = useNavigate()
   const [listening, setListening] = useState(false)
   const [userText, setUserText] = useState("")
@@ -20,6 +23,9 @@ function Home() {
   const [ham, setHam] = useState(false)
   const isRecognizingRef = useRef(false)
   const synth = window.speechSynthesis
+
+  // Use the assistantImage directly from context with fallback
+  const currentAssistantImage = assistantImage || userData?.assistantImage || defaultImage1;
 
   // Chat widget states
   const [chatOpen, setChatOpen] = useState(false)
@@ -262,9 +268,16 @@ function Home() {
         </button>
       </div>
 
-      {/* Main Assistant UI */}
+      {/* Main Assistant UI - FIXED */}
       <div className='w-[300px] h-[400px] flex justify-center items-center overflow-hidden rounded-4xl shadow-lg'>
-        <img src={userData?.assistantImage} alt="" className='h-full object-cover' />
+        <img 
+          src={currentAssistantImage} 
+          alt="AI Assistant" 
+          className='h-full w-full object-cover'
+          onError={(e) => {
+            e.target.src = defaultImage1;
+          }}
+        />
       </div>
 
       <h1 className='text-white text-[18px] font-semibold'>I'm {userData?.assistantName}</h1>
