@@ -6,19 +6,10 @@ import aiImg from "../assets/ai.gif"
 import { CgMenuRight } from "react-icons/cg"
 import { RxCross1 } from "react-icons/rx"
 import userImg from "../assets/user.gif"
-import { FaComments } from "react-icons/fa" 
 import ProChatWidget from "../components/ProChatWidget";
 
 // Import default images directly
 import image1 from "../assets/robort1.png";
-import image2 from "../assets/robort 2.png";
-import image3 from "../assets/robort 3.png";
-import image4 from "../assets/robort 4.png";
-import image5 from "../assets/robort 5.png";
-import image6 from "../assets/robort6.avif";
-import image7 from "../assets/robort 7.avif";
-import image8 from "../assets/robort 8.avif";
-import image9 from "../assets/robort 9.avif";
 
 function Home() {
   const { 
@@ -27,7 +18,8 @@ function Home() {
     setUserData, 
     getGeminiResponse, 
     selectedImage, 
-    frontendImage 
+    frontendImage,
+    assistantImage // Use the assistantImage from context directly
   } = useContext(userDataContext)
   
   const navigate = useNavigate()
@@ -40,36 +32,8 @@ function Home() {
   const isRecognizingRef = useRef(false)
   const synth = window.speechSynthesis
 
-  // Default images array
-  const defaultImages = [image1, image2, image3, image4, image5, image6, image7, image8, image9];
-
-  // Function to get the correct assistant image
-  const getAssistantImage = () => {
-    console.log("Selected Image:", selectedImage);
-    console.log("Frontend Image:", frontendImage);
-    console.log("UserData AssistantImage:", userData?.assistantImage);
-    
-    // If user uploaded an image, use the frontendImage URL
-    if (frontendImage) {
-      return frontendImage;
-    }
-    
-    // If a card was selected, use the selectedImage path
-    if (selectedImage && selectedImage.startsWith('card-')) {
-      const imageIndex = parseInt(selectedImage.split('-')[1]);
-      return defaultImages[imageIndex] || defaultImages[0];
-    }
-    
-    // Fallback to userData.assistantImage or default image
-    return userData?.assistantImage || defaultImages[0];
-  };
-
-  const currentAssistantImage = getAssistantImage();
-
-  // Chat widget states
-  const [chatOpen, setChatOpen] = useState(false)
-  const [chatMessages, setChatMessages] = useState([])
-  const [chatInput, setChatInput] = useState("")
+  // Use the assistantImage directly from context with fallback
+  const currentAssistantImage = assistantImage || image1;
 
   const handleLogOut = async () => {
     try {
@@ -139,8 +103,28 @@ function Home() {
   }
 
   const handleCommand = (data) => {
-    const { type, userInput, response } = data
-    speak(response)
+    console.log("🔄 Handling command:", data);
+    
+    if (!data || !data.response) {
+      console.error("❌ Invalid data received");
+      const errorMessage = "I didn't receive a valid response. Please try again.";
+      speak(errorMessage);
+      setAiText(errorMessage);
+      return;
+    }
+
+    const { type, userInput, response } = data;
+    
+    // Check if it's an error response
+    if (response.includes("trouble processing") || response.includes("Sorry") || response.includes("error") || response.includes("can't understand")) {
+      console.warn("⚠️ Error response detected, using fallback");
+      const fallbackResponse = `I heard you say "${userInput}". How can I help you with that?`;
+      speak(fallbackResponse);
+      setAiText(fallbackResponse);
+      return;
+    }
+
+    speak(response);
 
     if (type === 'google-search') {
       const query = encodeURIComponent(userInput)
@@ -180,8 +164,6 @@ function Home() {
     recognitionRef.current = recognition
 
     let isMounted = true
-
-    // No auto start here
 
     recognition.onstart = () => {
       isRecognizingRef.current = true
@@ -225,22 +207,46 @@ function Home() {
 
     recognition.onresult = async (e) => {
       const transcript = e.results[e.results.length - 1][0].transcript.trim()
-      // Removed assistant name check here, so it works on every input
+      console.log("🎤 User said:", transcript);
 
       setAiText("")
       setUserText(transcript)
       recognition.stop()
       isRecognizingRef.current = false
       setListening(false)
-      const data = await getGeminiResponse(transcript)
-      handleCommand(data)
-      setAiText(data.response)
-      setUserText("")
+      
+      try {
+        console.log("🔄 Getting Gemini response...");
+        const data = await getGeminiResponse(transcript)
+        console.log("📨 Response data:", data);
+        
+        if (data && data.response) {
+          console.log("✅ Valid response received");
+          handleCommand(data)
+          setAiText(data.response)
+        } else {
+          console.error("❌ Empty response");
+          const errorMsg = "I didn't receive a response. Please try again.";
+          setAiText(errorMsg)
+          speak(errorMsg)
+        }
+        
+        setUserText("")
+      } catch (error) {
+        console.error("❌ Error in recognition.onresult:", error)
+        const errorMsg = "Sorry, I encountered an error. Please try again.";
+        setAiText(errorMsg)
+        speak(errorMsg)
+        setUserText("")
+      }
     }
 
-    const greeting = new SpeechSynthesisUtterance(`Hello ${userData.name}, what can I help you with?`)
-    greeting.lang = 'hi-IN'
-    window.speechSynthesis.speak(greeting)
+    // Only speak greeting if userData exists
+    if (userData && userData.name) {
+      const greeting = new SpeechSynthesisUtterance(`Hello ${userData.name}, what can I help you with?`)
+      greeting.lang = 'hi-IN'
+      window.speechSynthesis.speak(greeting)
+    }
 
     return () => {
       isMounted = false
@@ -248,7 +254,19 @@ function Home() {
       setListening(false)
       isRecognizingRef.current = false
     }
-  }, [])
+  }, [userData]) // Add userData as dependency
+
+  // Add a test button for debugging
+  const testConnection = async () => {
+    const testCommand = "hello";
+    console.log("🧪 Testing with command:", testCommand);
+    const data = await getGeminiResponse(testCommand);
+    console.log("🧪 Test response:", data);
+    if (data && data.response) {
+      setAiText(data.response);
+      speak(data.response);
+    }
+  }
 
   return (
     <div className='w-full h-[100vh] bg-gradient-to-t from-[black] to-[#02023d] flex justify-center items-center flex-col gap-[15px] overflow-hidden relative'>
@@ -285,7 +303,7 @@ function Home() {
         <h1 className='text-white font-semibold text-[19px]'>History</h1>
 
         <div className='w-full h-[400px] gap-[20px] overflow-y-auto flex flex-col truncate'>
-          {userData.history?.map((his, i) => (
+          {userData?.history?.map((his, i) => (
             <div key={i} className='text-gray-200 text-[18px] w-full h-[30px]'>{his}</div>
           ))}
         </div>
@@ -307,7 +325,15 @@ function Home() {
         </button>
       </div>
 
-      {/* Main Assistant UI - FIXED */}
+      {/* Test button for debugging */}
+      <button
+        className="min-w-[150px] h-[50px] text-white font-semibold bg-blue-600 rounded-full px-5 text-[18px] shadow-xl transition-all duration-300 absolute top-4 right-4"
+        onClick={testConnection}
+      >
+        Test Connection
+      </button>
+
+      {/* Main Assistant UI */}
       <div className='w-[300px] h-[400px] flex justify-center items-center overflow-hidden rounded-4xl shadow-lg'>
         <img 
           src={currentAssistantImage} 
@@ -315,17 +341,17 @@ function Home() {
           className='h-full w-full object-cover'
           onError={(e) => {
             console.error("Image failed to load, using fallback");
-            e.target.src = defaultImages[0];
+            e.target.src = image1;
           }}
         />
       </div>
 
-      <h1 className='text-white text-[18px] font-semibold'>I'm {userData?.assistantName}</h1>
+      <h1 className='text-white text-[18px] font-semibold'>I'm {userData?.assistantName || "Your Assistant"}</h1>
 
       {!aiText && <img src={userImg} alt="" className='w-[200px]' />}
       {aiText && <img src={aiImg} alt="" className='w-[200px]' />}
 
-      <h1 className='text-white text-[18px] font-semibold text-wrap'>{userText ? userText : aiText ? aiText : null}</h1>
+      <h1 className='text-white text-[18px] font-semibold text-wrap'>{userText ? userText : aiText ? aiText : "Say something to get started..."}</h1>
 
       {/* Voice Start/Stop Toggle Button */}
       <button
@@ -338,14 +364,6 @@ function Home() {
       </button>
 
       <ProChatWidget />
-
-      {/* Debug info - remove in production */}
-      <div className="fixed bottom-0 left-0 bg-black bg-opacity-70 text-white p-2 text-xs">
-        <div>Image Debug:</div>
-        <div>Selected: {selectedImage || 'none'}</div>
-        <div>Uploaded: {frontendImage ? 'yes' : 'no'}</div>
-        <div>Current Image: {currentAssistantImage}</div>
-      </div>
 
       {/* Inline styles for background animation */}
       <style>{`
