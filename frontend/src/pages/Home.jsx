@@ -9,11 +9,27 @@ import userImg from "../assets/user.gif"
 import { FaComments } from "react-icons/fa" 
 import ProChatWidget from "../components/ProChatWidget";
 
-// Import default images as fallback
-import defaultImage1 from "../assets/robort1.png";
+// Import default images directly
+import image1 from "../assets/robort1.png";
+import image2 from "../assets/robort 2.png";
+import image3 from "../assets/robort 3.png";
+import image4 from "../assets/robort 4.png";
+import image5 from "../assets/robort 5.png";
+import image6 from "../assets/robort6.avif";
+import image7 from "../assets/robort 7.avif";
+import image8 from "../assets/robort 8.avif";
+import image9 from "../assets/robort 9.avif";
 
 function Home() {
-  const { userData, serverUrl, setUserData, getGeminiResponse, assistantImage, defaultImages } = useContext(userDataContext)
+  const { 
+    userData, 
+    serverUrl, 
+    setUserData, 
+    getGeminiResponse, 
+    selectedImage, 
+    frontendImage 
+  } = useContext(userDataContext)
+  
   const navigate = useNavigate()
   const [listening, setListening] = useState(false)
   const [userText, setUserText] = useState("")
@@ -24,8 +40,31 @@ function Home() {
   const isRecognizingRef = useRef(false)
   const synth = window.speechSynthesis
 
-  // Use the assistantImage directly from context with fallback
-  const currentAssistantImage = assistantImage || userData?.assistantImage || defaultImage1;
+  // Default images array
+  const defaultImages = [image1, image2, image3, image4, image5, image6, image7, image8, image9];
+
+  // Function to get the correct assistant image
+  const getAssistantImage = () => {
+    console.log("Selected Image:", selectedImage);
+    console.log("Frontend Image:", frontendImage);
+    console.log("UserData AssistantImage:", userData?.assistantImage);
+    
+    // If user uploaded an image, use the frontendImage URL
+    if (frontendImage) {
+      return frontendImage;
+    }
+    
+    // If a card was selected, use the selectedImage path
+    if (selectedImage && selectedImage.startsWith('card-')) {
+      const imageIndex = parseInt(selectedImage.split('-')[1]);
+      return defaultImages[imageIndex] || defaultImages[0];
+    }
+    
+    // Fallback to userData.assistantImage or default image
+    return userData?.assistantImage || defaultImages[0];
+  };
+
+  const currentAssistantImage = getAssistantImage();
 
   // Chat widget states
   const [chatOpen, setChatOpen] = useState(false)
@@ -275,7 +314,8 @@ function Home() {
           alt="AI Assistant" 
           className='h-full w-full object-cover'
           onError={(e) => {
-            e.target.src = defaultImage1;
+            console.error("Image failed to load, using fallback");
+            e.target.src = defaultImages[0];
           }}
         />
       </div>
@@ -298,6 +338,14 @@ function Home() {
       </button>
 
       <ProChatWidget />
+
+      {/* Debug info - remove in production */}
+      <div className="fixed bottom-0 left-0 bg-black bg-opacity-70 text-white p-2 text-xs">
+        <div>Image Debug:</div>
+        <div>Selected: {selectedImage || 'none'}</div>
+        <div>Uploaded: {frontendImage ? 'yes' : 'no'}</div>
+        <div>Current Image: {currentAssistantImage}</div>
+      </div>
 
       {/* Inline styles for background animation */}
       <style>{`
