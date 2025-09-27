@@ -23,7 +23,7 @@ function UserContext({children}) {
     const [frontendImage, setFrontendImage] = useState(null)
     const [backendImage, setBackendImage] = useState(null)
     const [selectedImage, setSelectedImage] = useState(null)
-    const [assistantImage, setAssistantImage] = useState(null) // New state for the actual image
+    const [assistantImage, setAssistantImage] = useState(null)
 
     const handleCurrentUser = async () => {
         try {
@@ -37,27 +37,40 @@ function UserContext({children}) {
 
     const getGeminiResponse = async (command) => {
         try {
-            const result = await axios.post(`${serverUrl}/api/user/asktoassistant`, {command}, {withCredentials: true})
-            return result.data
+            console.log("🔄 Sending command to backend:", command);
+            const result = await axios.post(
+                `${serverUrl}/api/user/asktoassistant`, 
+                {command}, 
+                {
+                    withCredentials: true,
+                    timeout: 15000
+                }
+            );
+            console.log("✅ Backend response:", result.data);
+            return result.data;
         } catch (error) {
-            console.log(error)
+            console.error("❌ Error in getGeminiResponse:", error);
+            
+            // Return a proper fallback response object
+            return {
+                type: 'general',
+                userInput: command,
+                response: "I'm having trouble connecting right now. Please try again in a moment."
+            };
         }
     }
 
     // Function to get the actual image based on selection
     const getCurrentAssistantImage = () => {
-        // If user uploaded an image
         if (frontendImage) {
             return frontendImage;
         }
         
-        // If a card was selected
         if (selectedImage && selectedImage.startsWith('card-')) {
             const imageIndex = parseInt(selectedImage.split('-')[1]);
             return defaultImages[imageIndex] || defaultImages[0];
         }
         
-        // Fallback to previously set assistant image or default
         return assistantImage || defaultImages[0];
     }
 
@@ -82,9 +95,9 @@ function UserContext({children}) {
         selectedImage, 
         setSelectedImage, 
         getGeminiResponse,
-        assistantImage, // Provide the actual image
-        defaultImages, // Provide the default images array
-        getCurrentAssistantImage // Provide the function as well
+        assistantImage,
+        defaultImages,
+        getCurrentAssistantImage
     }
 
     return (
@@ -96,4 +109,4 @@ function UserContext({children}) {
     )
 }
 
-export default UserContext
+export default UserContext;
