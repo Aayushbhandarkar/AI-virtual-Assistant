@@ -59,7 +59,7 @@ function Customize() {
         delay: Math.random() * 5,
         size: Math.random() * 6 + 2,
         duration: Math.random() * 4 + 3,
-        color: `hsl(${Math.random() * 60 + 200}, 100%, 70%)` // Blueish colors
+        color: `hsl(${Math.random() * 60 + 200}, 100%, 70%)`
       });
     }
     setParticles(particleArray);
@@ -179,6 +179,7 @@ function Customize() {
     const file = e.target.files[0];
     setBackendImage(file);
     setFrontendImage(URL.createObjectURL(file));
+    setSelectedImage("input"); // Set to "input" when file is selected
     
     // Animation when image is selected
     if (uploadCardRef.current && window.gsap) {
@@ -238,6 +239,8 @@ function Customize() {
     });
   };
 
+  const imageList = [image1, image2, image3, image4, image5, image6, image7, image8, image9];
+
   return (
     <div 
       ref={containerRef}
@@ -277,13 +280,12 @@ function Customize() {
       {/* Enhanced Title */}
       <h1 ref={titleRef} className="mb-[40px] text-[32px] text-center font-bold gradient-text drop-shadow-lg relative">
         Select your <span className="text-highlight">Assistant Image</span>
-        {/* Adding a subtle glow effect */}
         <div className="absolute inset-0 blur-md opacity-30 gradient-text -z-10"></div>
       </h1>
 
       {/* Enhanced Image Grid */}
       <div ref={gridRef} className="w-full max-w-[900px] flex justify-center items-center flex-wrap gap-[15px]">
-        {[image1, image2, image3, image4, image5, image6, image7, image8, image9].map((image, index) => (
+        {imageList.map((image, index) => (
           <div 
             key={index}
             ref={el => cardRefs.current[index] = el}
@@ -293,7 +295,7 @@ function Customize() {
             }}
             className="cursor-pointer"
           >
-            <Card image={image} />
+            <Card image={image} index={index} />
           </div>
         ))}
 
@@ -301,7 +303,7 @@ function Customize() {
         <div
           ref={uploadCardRef}
           className={`w-[70px] h-[140px] lg:w-[150px] lg:h-[250px] bg-[#020220] border-2 border-[#0000ff66] rounded-2xl overflow-hidden hover:shadow-2xl hover:shadow-blue-950 cursor-pointer hover:border-4 hover:border-white flex items-center justify-center transition-all duration-300 relative ${
-            selectedImage == "input"
+            selectedImage === "input"
               ? "border-4 border-white shadow-2xl shadow-blue-950"
               : ""
           }`}
@@ -311,7 +313,7 @@ function Customize() {
           }}
         >
           {/* Animated border effect when selected */}
-          {selectedImage == "input" && (
+          {selectedImage === "input" && (
             <div className="absolute inset-0 rounded-2xl border-2 border-transparent bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 animate-spin-slow opacity-70"></div>
           )}
           
@@ -320,7 +322,7 @@ function Customize() {
               <RiImageAddLine className="text-white w-[25px] h-[25px]" />
             )}
             {frontendImage && (
-              <img src={frontendImage} className="h-full object-cover rounded-2xl" />
+              <img src={frontendImage} className="h-full object-cover rounded-2xl" alt="Uploaded assistant" />
             )}
           </div>
         </div>
@@ -340,7 +342,6 @@ function Customize() {
           className="min-w-[150px] h-[60px] mt-[30px] text-black font-semibold cursor-pointer bg-white rounded-full text-[19px] shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-300 relative overflow-hidden group"
           onClick={handleNextClick}
         >
-          {/* Button shine effect */}
           <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></span>
           <span className="relative z-10">Next</span>
         </button>
@@ -372,11 +373,6 @@ function Customize() {
           animation: spin-slow 3s linear infinite;
         }
         
-        .animate-gradient {
-          background-size: 200% 200%;
-          animation: gradient 8s ease infinite;
-        }
-        
         .gradient-text {
           background: linear-gradient(90deg, #00c6ff, #0072ff, #00ff9d, #0072ff, #00c6ff);
           background-size: 300% auto;
@@ -393,10 +389,6 @@ function Customize() {
           -webkit-background-clip: text;
           background-clip: text;
           animation: gradient 3s ease infinite;
-        }
-        
-        .drop-shadow-lg {
-          text-shadow: 0 0 10px rgba(255,255,255,0.6), 0 0 20px rgba(0, 195, 255, 0.5);
         }
       `}</style>
     </div>
