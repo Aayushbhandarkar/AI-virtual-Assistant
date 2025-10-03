@@ -25,7 +25,8 @@ function Customize() {
     frontendImage,
     setFrontendImage,
     selectedImage,
-    setSelectedImage
+    setSelectedImage,
+    updateAssistantImage
   } = useContext(userDataContext);
 
   const navigate = useNavigate();
@@ -48,8 +49,20 @@ function Customize() {
 
   const handleImage = (e) => {
     const file = e.target.files[0];
-    setBackendImage(file);
-    setFrontendImage(URL.createObjectURL(file));
+    if (file) {
+      setBackendImage(file);
+      const imageUrl = URL.createObjectURL(file);
+      setFrontendImage(imageUrl);
+      // Update the assistant image in userData
+      updateAssistantImage(imageUrl);
+      setSelectedImage("input");
+    }
+  };
+
+  // Function to handle image selection from Card components
+  const handleImageSelect = (image) => {
+    updateAssistantImage(image);
+    setSelectedImage(image);
   };
 
   return (
@@ -75,44 +88,53 @@ function Customize() {
 
       {/* Back Button */}
       <MdKeyboardBackspace
-        className="absolute top-[30px] left-[30px] text-white cursor-pointer w-[25px] h-[25px] hover:scale-110 transition-transform duration-300"
+        className="absolute top-[30px] left-[30px] text-white cursor-pointer w-[25px] h-[25px] hover:scale-110 transition-transform duration-300 z-10"
         onClick={() => navigate("/")}
       />
 
+      {/* Debug info - remove after testing */}
+      <div className="absolute top-[30px] right-[30px] text-white text-sm bg-black/50 p-2 rounded z-10">
+        Current: {userData?.assistantImage ? "Image Set" : "No Image"}
+      </div>
+
       {/* Title */}
-      <h1 className="mb-[40px] text-[32px] text-center animate-fadeIn font-bold gradient-text drop-shadow-lg">
+      <h1 className="mb-[40px] text-[32px] text-center animate-fadeIn font-bold gradient-text drop-shadow-lg z-10">
         Select your <span className="text-highlight">Assistant Image</span>
       </h1>
 
       {/* Image Grid */}
-      <div className="w-full max-w-[900px] flex justify-center items-center flex-wrap gap-[15px] animate-slideUp">
-        <Card image={image1} />
-        <Card image={image2} />
-        <Card image={image3} />
-        <Card image={image4} />
-        <Card image={image5} />
-        <Card image={image6} />
-        <Card image={image7} />
-        <Card image={image8} />
-        <Card image={image9} />
+      <div className="w-full max-w-[900px] flex justify-center items-center flex-wrap gap-[15px] animate-slideUp z-10">
+        {/* Update Card components to use the new handler */}
+        <Card image={image1} onSelect={handleImageSelect} />
+        <Card image={image2} onSelect={handleImageSelect} />
+        <Card image={image3} onSelect={handleImageSelect} />
+        <Card image={image4} onSelect={handleImageSelect} />
+        <Card image={image5} onSelect={handleImageSelect} />
+        <Card image={image6} onSelect={handleImageSelect} />
+        <Card image={image7} onSelect={handleImageSelect} />
+        <Card image={image8} onSelect={handleImageSelect} />
+        <Card image={image9} onSelect={handleImageSelect} />
 
         {/* Upload Option */}
         <div
           className={`w-[70px] h-[140px] lg:w-[150px] lg:h-[250px] bg-[#020220] border-2 border-[#0000ff66] rounded-2xl overflow-hidden hover:shadow-2xl hover:shadow-blue-950 cursor-pointer hover:border-4 hover:border-white flex items-center justify-center transition-all duration-300 ${
-            selectedImage == "input"
+            selectedImage === "input" || selectedImage === frontendImage
               ? "border-4 border-white shadow-2xl shadow-blue-950"
               : ""
           }`}
           onClick={() => {
             inputImage.current.click();
-            setSelectedImage("input");
           }}
         >
           {!frontendImage && (
             <RiImageAddLine className="text-white w-[25px] h-[25px]" />
           )}
           {frontendImage && (
-            <img src={frontendImage} className="h-full object-cover" />
+            <img 
+              src={frontendImage} 
+              alt="Uploaded assistant" 
+              className="h-full w-full object-cover"
+            />
           )}
         </div>
         <input
@@ -127,7 +149,7 @@ function Customize() {
       {/* Next Button */}
       {selectedImage && (
         <button
-          className="min-w-[150px] h-[60px] mt-[30px] text-black font-semibold cursor-pointer bg-white rounded-full text-[19px] shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-300 animate-slideUp"
+          className="min-w-[150px] h-[60px] mt-[30px] text-black font-semibold cursor-pointer bg-white rounded-full text-[19px] shadow-lg hover:scale-105 hover:shadow-xl transition-all duration-300 animate-slideUp z-10"
           onClick={() => navigate("/customize2")}
         >
           Next
