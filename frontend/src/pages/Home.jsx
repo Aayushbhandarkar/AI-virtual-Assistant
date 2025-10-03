@@ -6,6 +6,8 @@ import aiImg from "../assets/ai.gif"
 import { CgMenuRight } from "react-icons/cg"
 import { RxCross1 } from "react-icons/rx"
 import userImg from "../assets/user.gif"
+import { FaComments } from "react-icons/fa" 
+import ProChatWidget from "../components/ProChatWidget";
 
 function Home() {
   const { userData, serverUrl, setUserData, getGeminiResponse } = useContext(userDataContext)
@@ -19,9 +21,14 @@ function Home() {
   const isRecognizingRef = useRef(false)
   const synth = window.speechSynthesis
 
+  // Chat widget states
+  const [chatOpen, setChatOpen] = useState(false)
+  const [chatMessages, setChatMessages] = useState([])
+  const [chatInput, setChatInput] = useState("")
+
   const handleLogOut = async () => {
     try {
-      const result = await axios.get(`${serverUrl}/api/auth/logout`, { withCredentials: true })
+      await axios.get(`${serverUrl}/api/auth/logout`, { withCredentials: true })
       setUserData(null)
       navigate("/signin")
     } catch (error) {
@@ -43,6 +50,25 @@ function Home() {
     }
   }
 
+  const stopRecognition = () => {
+    try {
+      recognitionRef.current?.stop()
+      console.log("Recognition requested to stop")
+    } catch (error) {
+      if (error.name !== "InvalidStateError") {
+        console.error("Stop error:", error)
+      }
+    }
+  }
+
+  const toggleListening = () => {
+    if (isRecognizingRef.current) {
+      stopRecognition()
+    } else {
+      startRecognition()
+    }
+  }
+
   const speak = (text) => {
     const utterence = new SpeechSynthesisUtterance(text)
     utterence.lang = 'hi-IN'
@@ -57,7 +83,9 @@ function Home() {
       setAiText("")
       isSpeakingRef.current = false
       setTimeout(() => {
-        startRecognition()
+        if (listening) {
+          startRecognition()
+        }
       }, 800)
     }
 
@@ -108,16 +136,7 @@ function Home() {
 
     let isMounted = true
 
-    const startTimeout = setTimeout(() => {
-      if (isMounted && !isSpeakingRef.current && !isRecognizingRef.current) {
-        try {
-          recognition.start()
-          console.log("Recognition requested to start")
-        } catch (e) {
-          if (e.name !== "InvalidStateError") console.error(e)
-        }
-      }
-    }, 1000)
+    // No auto start here
 
     recognition.onstart = () => {
       isRecognizingRef.current = true
@@ -127,7 +146,7 @@ function Home() {
     recognition.onend = () => {
       isRecognizingRef.current = false
       setListening(false)
-      if (isMounted && !isSpeakingRef.current) {
+      if (isMounted && !isSpeakingRef.current && listening) {
         setTimeout(() => {
           if (isMounted) {
             try {
@@ -145,7 +164,7 @@ function Home() {
       console.warn("Recognition error:", event.error)
       isRecognizingRef.current = false
       setListening(false)
-      if (event.error !== "aborted" && isMounted && !isSpeakingRef.current) {
+      if (event.error !== "aborted" && isMounted && !isSpeakingRef.current && listening) {
         setTimeout(() => {
           if (isMounted) {
             try {
@@ -161,17 +180,17 @@ function Home() {
 
     recognition.onresult = async (e) => {
       const transcript = e.results[e.results.length - 1][0].transcript.trim()
-      if (transcript.toLowerCase().includes(userData.assistantName.toLowerCase())) {
-        setAiText("")
-        setUserText(transcript)
-        recognition.stop()
-        isRecognizingRef.current = false
-        setListening(false)
-        const data = await getGeminiResponse(transcript)
-        handleCommand(data)
-        setAiText(data.response)
-        setUserText("")
-      }
+      // Removed assistant name check here, so it works on every input
+
+      setAiText("")
+      setUserText(transcript)
+      recognition.stop()
+      isRecognizingRef.current = false
+      setListening(false)
+      const data = await getGeminiResponse(transcript)
+      handleCommand(data)
+      setAiText(data.response)
+      setUserText("")
     }
 
     const greeting = new SpeechSynthesisUtterance(`Hello ${userData.name}, what can I help you with?`)
@@ -180,7 +199,6 @@ function Home() {
 
     return () => {
       isMounted = false
-      clearTimeout(startTimeout)
       recognition.stop()
       setListening(false)
       isRecognizingRef.current = false
@@ -188,12 +206,23 @@ function Home() {
   }, [])
 
   return (
-    <div className='w-full h-[100vh] bg-gradient-to-t from-[black] to-[#02023d] flex justify-center items-center flex-col gap-[15px] overflow-hidden'>
+    <div className='w-full h-[100vh] bg-gradient-to-t from-[black] to-[#02023d] flex justify-center items-center flex-col gap-[15px] overflow-hidden relative'>
+
+      {/* Background animated particles */}
+      <div className="background-animated-particles" aria-hidden="true">
+        <span className="particle small" style={{ top: "15%", left: "20%" }} />
+        <span className="particle medium" style={{ top: "50%", left: "40%" }} />
+        <span className="particle large" style={{ top: "80%", left: "70%" }} />
+        <span className="particle small" style={{ top: "30%", left: "75%" }} />
+        <span className="particle medium" style={{ top: "65%", left: "15%" }} />
+      </div>
+
       <CgMenuRight className='lg:hidden text-white absolute top-[20px] right-[20px] w-[25px] h-[25px]' onClick={() => setHam(true)} />
 
+      {/* Mobile menu */}
       <div className={`absolute lg:hidden top-0 w-full h-full bg-[#00000053] backdrop-blur-lg p-[20px] flex flex-col gap-[20px] items-start ${ham ? "translate-x-0" : "translate-x-full"} transition-transform`}>
         <RxCross1 className=' text-white absolute top-[20px] right-[20px] w-[25px] h-[25px]' onClick={() => setHam(false)} />
-        
+
         <button
           className='min-w-[150px] h-[60px] text-white font-semibold bg-gradient-to-r from-[#1e1b4b] to-[#1e3a8a] rounded-full px-5 text-[18px] shadow-xl hover:scale-105 transition-all duration-300'
           onClick={handleLogOut}
@@ -217,7 +246,7 @@ function Home() {
         </div>
       </div>
 
-      {/* LEFT SIDE BUTTONS (DESKTOP) */}
+      {/* LEFT SIDE BUTTONS */}
       <div className="absolute hidden lg:flex flex-col gap-[20px] top-[20px] left-[20px]">
         <button
           className='min-w-[150px] h-[60px] text-white font-semibold bg-gradient-to-r from-[#1e1b4b] to-[#1e3a8a] rounded-full px-5 text-[18px] shadow-xl hover:scale-105 transition-all duration-300'
@@ -233,6 +262,7 @@ function Home() {
         </button>
       </div>
 
+      {/* Main Assistant UI */}
       <div className='w-[300px] h-[400px] flex justify-center items-center overflow-hidden rounded-4xl shadow-lg'>
         <img src={userData?.assistantImage} alt="" className='h-full object-cover' />
       </div>
@@ -243,6 +273,72 @@ function Home() {
       {aiText && <img src={aiImg} alt="" className='w-[200px]' />}
 
       <h1 className='text-white text-[18px] font-semibold text-wrap'>{userText ? userText : aiText ? aiText : null}</h1>
+
+      {/* Voice Start/Stop Toggle Button */}
+      <button
+        className={`min-w-[150px] h-[50px] text-white font-semibold rounded-full px-5 text-[18px] shadow-xl transition-all duration-300 ${
+          listening ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'
+        }`}
+        onClick={toggleListening}
+      >
+        {listening ? 'Stop Listening' : 'Start Listening'}
+      </button>
+
+      <ProChatWidget />
+
+      {/* Inline styles for background animation */}
+      <style>{`
+        @keyframes subtleParticleMove {
+          0% {
+            transform: translateY(0) translateX(0);
+            opacity: 0.3;
+          }
+          50% {
+            transform: translateY(-15px) translateX(10px);
+            opacity: 0.6;
+          }
+          100% {
+            transform: translateY(0) translateX(0);
+            opacity: 0.3;
+          }
+        }
+
+        .background-animated-particles {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          overflow: hidden;
+          z-index: 0;
+        }
+
+        .particle {
+          position: absolute;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.1);
+          animation: subtleParticleMove 6s ease-in-out infinite;
+        }
+
+        .particle.small {
+          width: 6px;
+          height: 6px;
+          animation-delay: 0s;
+        }
+
+        .particle.medium {
+          width: 10px;
+          height: 10px;
+          animation-delay: 2s;
+        }
+
+        .particle.large {
+          width: 14px;
+          height: 14px;
+          animation-delay: 4s;
+        }
+      `}</style>
     </div>
   )
 }
